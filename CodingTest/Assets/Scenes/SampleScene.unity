@@ -342,7 +342,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 981449681}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aafa617b66ee23545a9b83e3129f8c12, type: 3}
+  m_Script: {fileID: 11500000, guid: 3e698c1d3676d154eb1a16e910f12b96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  value: 10
+  TIME: 20
+  SC: 4
+  A: 03000000040000000a0000000f000000
+  B: 04000000010000000200000001000000
+  C: 0a000000040000000500000003000000
+  D: 03000000020000000500000007000000

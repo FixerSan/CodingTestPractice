@@ -53,17 +53,19 @@ public class Two : MonoBehaviour
 
         //사용하고 있는 신발의 인덱스
         int useShoesIndex = -1;
-
-        //움직인 거리
-        int moveDistance = 0;
+        
+        //가장 속도가 느린 신발의 인덱스
 
         //현재 초속
         int nowSpeed = 1;
 
-        //변경 후 스피드
-        int changeAfterSpeed = 0;
+        //움직인 거리
+        int moveDistance = 0;
 
-        //배열값 초기화
+        //임시 인트
+        int tempInt = 0;
+
+        //값 초기화
         for (int i = 0; i < shoesCount; i++)
         {
             isCanUses[i] = false;
@@ -90,8 +92,8 @@ public class Two : MonoBehaviour
                 }
             }
 
-            //바꿀 수 있으면서
-            if(isCanChange)
+            //바꿀 수 있으면서 바꾸고 있는 상태가 아닐 때
+            if(isCanChange && !isChanging)
             {
                 //처음 바꾸는 거 면서
                 if(isFirstChange)
@@ -104,6 +106,7 @@ public class Two : MonoBehaviour
                             //다음 녀석이 사용 되지 않았으면서 다음 녀석을 기다리는 것 보다 그냥 장착하는게 시간 손실이 적을 경우
                             if (j + 1 < shoesCount && !isUsedShoes[j+1] && a[j] + b[j] < a[j + 1] + b[j + 1])
                             {
+                                //바꾸기
                                 isUsing = true;
                                 useRemainingTime = c[j];
                                 isFirstChange = false;
@@ -111,56 +114,76 @@ public class Two : MonoBehaviour
                                 isUsedShoes[j] = true;
                                 isCanUses[j] = false;
                                 changeTimeCheck = b[j];
-                                changeAfterSpeed = d[j];
+                                useShoesIndex = j;
                                 break;
                             }
                         }
                     }
                 }
 
+                //처음 바꾸는 게 아니라면
                 else
                 {
                     for (int j = shoesCount; j > 0; j--)
                     {
-                        if(isCanUses[j-1])
+                        //바꿀 수 있는 녀석을 찾고
+                        if(isCanUses[j-1] && nowSpeed < d[j-1])
                         {
-                            isUsing = true;
-                            isUsedShoes[j - 1] = true;
-                            isCanUses[j - 1] = false;
-                            nowSpeed = d[j-1];
-                            useRemainingTime = c[j];
-                            break;
+                            //바꿀 수 있지만 굳이 지금 바꿔야 하는지 테스트
+                            tempInt = 0;
+                            for (int k = 0; k < shoesCount; k++)
+                            {
+                                if (!isUsedShoes[k])
+                                    tempInt += c[k];
+                            }
+
+                            //지금 바꾸지 않으면 손실이 일어날 경우 변경
+                            if(tempInt>x-(i+1))
+                            {
+                                isUsedShoes[j - 1] = true;
+                                isCanUses[j - 1] = false;
+                                nowSpeed = d[j-1];
+                                useRemainingTime = c[j - 1];
+                                useShoesIndex = j - 1;
+                                isUsing = true;
+                                break;
+                            }
                         }
                     }
                 }
             }
 
+            //바꾸는 중이라면
             if (isChanging)
             {
+                //체인지 딜레이 감소
                 changeTimeCheck--;
+                //체인지 딜레이가 전부 감소 했다면 신발 장착
                 if (changeTimeCheck <= 0)
                 {
                     isChanging = false;
-                    nowSpeed = changeAfterSpeed;
+                    nowSpeed = d[useShoesIndex];
                     isUsing = true;
-                    useRemainingTime = c[j];        //여기서부터 다시해
+                    useRemainingTime = c[useShoesIndex];
                 }
             }
 
+            //바꾸는 중이 아니라면
             else
-                moveDistance += nowSpeed;
-
-            //
-            if(isUsing)
             {
-                useRemainingTime--;
-                if(useRemainingTime <= 0)
+                //움직이기
+                 moveDistance += nowSpeed;
+                //움직이고 나서 아이템 유지시간 감소
+                if (isUsing)
                 {
-                    nowSpeed = 0;
-                    
+                    useRemainingTime--;
+                    //유지시간이 전부 감소했다면 원래 속도로 변경
+                    if (useRemainingTime <= 0)
+                        nowSpeed = 1;
                 }
             }
         }
         return moveDistance;
     }
 }
+
