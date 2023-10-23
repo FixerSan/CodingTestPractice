@@ -22,9 +22,11 @@ public class Two : MonoBehaviour
 
     //가장 처음에 신는 신발이 장착시간이 짧으면 좋음
 
-    public void Start()
+    public void Update()
     {
-        Debug.Log(Solution(TIME, SC, A, B, C, D));
+
+            if (Input.GetMouseButtonDown(0))
+                Debug.Log(Solution(TIME, SC, A, B, C, D));
     }
 
     public int Solution(int x, int shoesCount, int[] a, int[] b, int[] c, int[] d)
@@ -35,6 +37,7 @@ public class Two : MonoBehaviour
         //지금 신발을 바꾸고 있는지
         bool isChanging = false;
 
+        //신발을 처음 바꿀 때 걸리는 시간 체크용
         int changeTimeCheck = -1;
 
         //신발별 사용 가능 여부
@@ -49,12 +52,11 @@ public class Two : MonoBehaviour
         //신발을 사용하고 있는지
         bool isUsing = false;
 
+        //신발 유지 시간
         int useRemainingTime = 0;
 
         //사용하고 있는 신발의 인덱스
         int useShoesIndex = -1;
-        
-        //가장 속도가 느린 신발의 인덱스
 
         //현재 초속
         int nowSpeed = 1;
@@ -62,7 +64,7 @@ public class Two : MonoBehaviour
         //움직인 거리
         int moveDistance = 0;
 
-        //임시 인트
+        //신발을 언제까지 유지해도 괜찮은지 확인용
         int tempInt = 0;
 
         //값 초기화
@@ -76,7 +78,9 @@ public class Two : MonoBehaviour
         //시간(i초) 카운트
         for (int i = 0; i < x; i++)
         {
+            //변경 가능 여부 초기화
             isCanChange = false;
+
             //생성 되어있는지 체크
             for (int j = 0; j < shoesCount; j++)
             {
@@ -95,18 +99,46 @@ public class Two : MonoBehaviour
             //바꿀 수 있으면서 바꾸고 있는 상태가 아닐 때
             if(isCanChange && !isChanging)
             {
-                //처음 바꾸는 거 면서
+                //처음 바꾸는 거라면
                 if(isFirstChange)
                 {
+                    //바꿀 수 있는 신발을 찾고
                     for (int j = 0; j < isCanUses.Length; j++)
                     {
-                        //바꿀 수 있는 녀석이 
+                        //바꿀 수 있는 신발이 있다면
                         if (isCanUses[j])
                         {
-                            //다음 녀석이 사용 되지 않았으면서 다음 녀석을 기다리는 것 보다 그냥 장착하는게 시간 손실이 적을 경우
-                            if (j + 1 < shoesCount && !isUsedShoes[j+1] && a[j] + b[j] < a[j + 1] + b[j + 1])
+                            //그 신발과 다른 신발을 비교
+                            for (int k = 0; k < shoesCount; k++)
                             {
-                                //바꾸기
+                                //다른 신발이 쓰였거나 같은 신발이면 넘기고
+                                if (k == j || isUsedShoes[k])
+                                    continue;
+
+                                //바꾸려는 신발의 다른 신발들의 처음 사용 가능 시간을 비교해서 바꾸려는 신발이 더 긴 경우
+                                //여기서 처음 사용 가능 시간이란 신발이 만들어지는 시간(a) + 신발을 장착하는 시간(b)
+                                if (a[j] + b[j] > a[k] + b[k])
+                                {
+                                    //다른 신발을 기다리게끔 지금 바꾸려는 신발을 불가능 처리 후 브레이크
+                                    isCanUses[j] = false;
+                                    break;
+                                }
+
+                                //바꾸려는 신발의 다른 신발들의 처음 사용 가능 시간을 비교해서 서로 같을 경우
+                                else if (a[j] + b[j] == a[k] + b[k])
+                                {
+                                    //둘의 속도를 비교해서 만약 바꾸려는 신발의 속도가 더 느리다면 다른 신발을 기다리게끔
+                                    //지금 바꾸려는 신발을 불가능 처리 후 브레이크
+                                    if (d[j] < d[k])
+                                    {
+                                        isCanUses[j] = false;
+                                        break;
+                                    }
+                                }
+                            }
+                            //모든 예외처리를 거치고 아직도 바꿀 수 있는 상태라면 바꾸기
+                            if (isCanUses[j])
+                            {
                                 isUsing = true;
                                 useRemainingTime = c[j];
                                 isFirstChange = false;
@@ -126,7 +158,7 @@ public class Two : MonoBehaviour
                 {
                     for (int j = shoesCount; j > 0; j--)
                     {
-                        //바꿀 수 있는 녀석을 찾고
+                        //바꿀 수 있는 신발을 찾고 그 신발이 나보다 더 좋은 성능을 가지고 있는지 체크
                         if(isCanUses[j-1] && nowSpeed < d[j-1])
                         {
                             //바꿀 수 있지만 굳이 지금 바꿔야 하는지 테스트
@@ -179,7 +211,10 @@ public class Two : MonoBehaviour
                     useRemainingTime--;
                     //유지시간이 전부 감소했다면 원래 속도로 변경
                     if (useRemainingTime <= 0)
+                    {
                         nowSpeed = 1;
+                        isUsing = false;
+                    }
                 }
             }
         }
